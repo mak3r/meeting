@@ -10,6 +10,7 @@ function meeting()
 		echo -e "\tAssume todays date unless one of t, y or d are specified"
 		echo -e "\t  t - use tomorrow's date"
 		echo -e "\t  y - use yesterday's date"
+		echo -e "\t  c - find all <filename> and concatentate out all of them."
 		echo -e "\t  d - use date specified by date format. Specify 9 days ago for example 'meeting -d \"-v -9d +%Y/%m/%d\"'"
 		echo -e "\t  D - use todays date as the basis for adding or subtracting days. Use with -l for example 'meeting -l -D \"-2\"'"
 		echo -e "\t\t Be sure to quote the argument to -D otherwise the '+' or '-' will be interpreted by the shell."
@@ -30,7 +31,7 @@ function meeting()
 	EDITOR="vi"
 
 	local OPTIND opt tylhsfdDr
-	while getopts "tyhsl:f:d:D:r:" opt; do
+	while getopts "tyc:hsl:f:d:D:r:" opt; do
 		case $opt in
 			#tomorrow
 			t)
@@ -39,6 +40,10 @@ function meeting()
 			#yesterday
 			y) 
 				DATE="$(date -v -1d +%Y/%m/%d)"
+			;;
+			#cat out the files
+			c)
+				CAT="$OPTARG"
 			;;
 			#specify the date in bash 'date' format
 			d)
@@ -82,8 +87,13 @@ function meeting()
 			echo $ROOT
 		elif [[ "$FIND" != "" ]]; then
 			find "$ROOT" -iname "$FIND"
+		elif [[ "$CAT" != "" ]]; then
+			cat $(find "$ROOT" -iname "$CAT") 
 		else 
 			if [[ "$LIST" -eq "0" ]]; then
+				if [ ! -d "$CURPATH" ]; then
+					mkdir -p "$CURPATH"
+				fi
 				"$EDITOR" "$CURPATH/$*"
 			else
 				echo "List of meetings in $CURPATH:"
